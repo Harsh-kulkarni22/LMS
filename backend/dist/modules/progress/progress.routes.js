@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const progress_controller_1 = require("./progress.controller");
+const auth_middleware_1 = require("../../middleware/auth.middleware");
+const router = (0, express_1.Router)();
+router.get("/videos/:videoId", auth_middleware_1.requireAuth, progress_controller_1.getVideoProgress);
+router.post("/videos/:videoId", auth_middleware_1.requireAuth, progress_controller_1.updateVideoProgress);
+router.get("/subjects/:subjectId", auth_middleware_1.requireAuth, progress_controller_1.getSubjectProgress);
+exports.default = router;
