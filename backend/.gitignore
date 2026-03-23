@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+build.log
+lint.txt
+tsc.txt
+
+# Build folders
+dist/
+build/
+
+# Next.js
+.next/
+
+# OS files
+.DS_Store
+Thumbs.db
