@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Star } from "lucide-react";
+import { Star, Heart } from "lucide-react";
 import CoursePreviewPopup from "./CoursePreviewPopup";
 import ProgressBar from "./ProgressBar";
+import { useWishlistStore } from "@/store/wishlistStore";
+import { clsx } from "clsx";
 
 export interface CourseCardSubject {
   id: string;
@@ -27,6 +29,30 @@ function deriveLearnPoints(description: string | null): string[] {
   return parts.length
     ? parts
     : ["Learn core concepts", "Apply what you learn", "Build real skills"];
+}
+
+function extractYoutubeId(text: string | null): string | null {
+  if (!text) return null;
+  const match = text.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+  return match ? match[1] : null;
+}
+
+function getFallbackThumbnail(id: string): string {
+  const fallbacks = [
+    "https://i.ytimg.com/vi/Sklc_fQBmcs/0.jpg",
+    "https://i.ytimg.com/vi/_GTMOnL1M9U/0.jpg",
+    "https://i.ytimg.com/vi/Zi-Q0t4gMC8/0.jpg",
+    "https://i.ytimg.com/vi/Zq5fmkH0T78/0.jpg",
+    "https://i.ytimg.com/vi/bMknfKXIFA8/0.jpg",
+    "https://i.ytimg.com/vi/8aGhZQkoFbQ/0.jpg",
+    "https://i.ytimg.com/vi/W6NZfCO5SIk/0.jpg",
+    "https://i.ytimg.com/vi/mU6anWqZJcc/0.jpg",
+    "https://i.ytimg.com/vi/xk4_1vDrzzo/0.jpg",
+    "https://i.ytimg.com/vi/pTNhAjvw6XY/0.jpg"
+  ];
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h + id.charCodeAt(i) * (i + 1)) % 997;
+  return fallbacks[h % fallbacks.length];
 }
 
 function seededMeta(id: string) {
@@ -62,6 +88,8 @@ export default function CourseCard({
 }: CourseCardProps) {
   const { instructor, rating, price, badge } = seededMeta(subject.id);
   const learnPoints = deriveLearnPoints(subject.description);
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
+  const inWishlist = isInWishlist(subject.id);
   const [showPreview, setShowPreview] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
@@ -115,8 +143,9 @@ export default function CourseCard({
     };
   }, [showPreview, updatePosition]);
 
+  const ytId = extractYoutubeId(subject.description);
   const thumb =
-    thumbnailUrl || `https://picsum.photos/seed/${encodeURIComponent(subject.slug || subject.id)}/520/292`;
+    thumbnailUrl || (ytId ? `https://i.ytimg.com/vi/${ytId}/0.jpg` : getFallbackThumbnail(subject.id));
 
   return (
     <div
@@ -131,7 +160,7 @@ export default function CourseCard({
     >
       <Link
         href={`/subjects/${subject.id}`}
-        className="block cursor-pointer overflow-hidden rounded-lg border border-border-soft bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+        className="block cursor-pointer overflow-hidden rounded-lg border border-border-soft bg-white shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
       >
         <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
           <Image
@@ -151,6 +180,18 @@ export default function CourseCard({
               {badge === "bestseller" ? "Bestseller" : "Premium"}
             </span>
           )}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(subject);
+            }}
+            className="absolute right-2 top-2 z-10 rounded-full p-1.5 backdrop-blur-md bg-white/30 transition-colors hover:bg-white/50"
+          >
+            <Heart
+              className={clsx("h-5 w-5 transition-colors", inWishlist ? "fill-red-500 text-red-500" : "text-white")}
+            />
+          </button>
         </div>
         <div className="p-3">
           <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-gray-900">
@@ -199,8 +240,7 @@ export default function CourseCard({
           >
             <div className="shadow-xl">
               <CoursePreviewPopup
-                title={subject.title}
-                description={subject.description}
+                course={subject}
                 learnPoints={learnPoints}
               />
             </div>

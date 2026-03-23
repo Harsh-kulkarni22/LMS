@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
+import ToastProvider from "@/components/ToastProvider";
+import ChatBotButton from "@/components/ChatBotButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +25,8 @@ export default function RootLayout({
           <Navbar />
           {children}
         </AuthGuard>
+        <ChatBotButton />
+        <ToastProvider />
       </body>
     </html>
   );

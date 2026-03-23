@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { api } from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -79,9 +79,17 @@ export default function VideoPage({
     };
   }, [params.subjectId, progress?.is_completed]);
 
+  const lastSyncRef = useRef<number>(0);
   const handleProgress = useCallback((seconds: number) => {
     setLiveSeconds(seconds);
-  }, []);
+    const now = Date.now();
+    if (now - lastSyncRef.current > 5000) {
+      lastSyncRef.current = now;
+      api.post(`/progress/videos/${params.videoId}`, {
+        last_position_seconds: Math.floor(seconds),
+      }).catch(err => console.error("Failed to sync progress:", err));
+    }
+  }, [params.videoId]);
 
   const posDisplay = liveSeconds ?? progress?.last_position_seconds ?? 0;
 

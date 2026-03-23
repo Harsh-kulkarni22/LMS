@@ -25,7 +25,7 @@ function extractYoutubeId(url: string): string | null {
 
 function toYoutubeThumb(youtubeUrl: string): string | null {
   const id = extractYoutubeId(youtubeUrl);
-  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
+  return id ? `https://i.ytimg.com/vi/${id}/0.jpg` : null;
 }
 
 export async function fetchSubjectRuntime(subjectId: string): Promise<SubjectRuntime> {

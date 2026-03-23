@@ -10,6 +10,7 @@ import subjectsRoutes from "./modules/subjects/subjects.routes";
 import videosRoutes from "./modules/videos/videos.routes";
 import progressRoutes from "./modules/progress/progress.routes";
 import exploreRoutes from "./modules/explore/explore.routes";
+import chatRoutes from "./modules/chat/chat.routes";
 
 const app: Express = express();
 
@@ -25,6 +26,7 @@ app.use("/api/subjects", subjectsRoutes);
 app.use("/api/videos", videosRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/explore", exploreRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Error Handling
 app.use(errorHandler);

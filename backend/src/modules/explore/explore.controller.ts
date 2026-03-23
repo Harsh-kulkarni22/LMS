@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import * as exploreService from "./explore.service";
 
-export const getExplore = async (_req: Request, res: Response, next: NextFunction) => {
+export const getExplore = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await exploreService.getExploreVideos();
+    const query = req.query.q as string | undefined;
+    const data = await exploreService.getExploreVideos(query);
     res.status(200).json({ success: true, data });
   } catch (error) {
     next(error);

@@ -14,7 +14,7 @@ function watchHref(video: ExploreVideo) {
     title: video.title,
     channel: video.channelTitle,
   });
-  return `/explore/watch/${video.videoId}?${q.toString()}`;
+  return `/home/watch/${video.videoId}?${q.toString()}`;
 }
 
 interface Props {
