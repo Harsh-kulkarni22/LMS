@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Clock, Plus, X, ArrowUp, Bot } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { api } from "@/lib/axios";
+import axios from "axios"; // ✅ added
 
 interface Message {
   role: "user" | "ai";
@@ -14,7 +15,7 @@ interface Message {
 export default function ChatPage() {
   const { user } = useAuthStore();
   const userName = user?.name || "Harsh";
-  
+
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -42,7 +43,7 @@ export default function ChatPage() {
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || isTyping) return;
-    
+
     const userMsg = input.trim();
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
@@ -52,13 +53,23 @@ export default function ChatPage() {
       const res = await api.post("/chat", { message: userMsg, history: messages.slice(-10) });
       const aiResponseContent = res.data.data.content;
       setMessages((prev) => [
-        ...prev, 
+        ...prev,
         { role: "ai", content: aiResponseContent }
       ]);
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || "Something went wrong fetching from AI.";
+    } catch (err: unknown) {
+      let errorMsg = "Something went wrong fetching from AI.";
+
+      if (axios.isAxiosError(err)) {
+        errorMsg =
+          err.response?.data?.message ||
+          err.message ||
+          errorMsg;
+      } else if (err instanceof Error) {
+        errorMsg = err.message;
+      }
+
       setMessages((prev) => [
-        ...prev, 
+        ...prev,
         { role: "ai", content: `Error: ${errorMsg}` }
       ]);
     } finally {
@@ -74,12 +85,11 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#f9fafb] text-gray-900 font-sans">
-      
+
       {/* Sliding History Sidebar */}
-      <div 
-        className={`fixed inset-y-0 left-0 z-40 w-72 transform bg-white border-r border-gray-200 shadow-xl transition-transform duration-300 ease-in-out ${
-          showHistory ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-72 transform bg-white border-r border-gray-200 shadow-xl transition-transform duration-300 ease-in-out ${showHistory ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex h-16 items-center justify-between px-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800">Chat History</h2>
@@ -89,11 +99,11 @@ export default function ChatPage() {
         </div>
         <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-4rem)]">
           {historyItems.map((item, idx) => (
-            <button 
+            <button
               key={idx}
               className="w-full text-left px-3 py-3 rounded-xl border border-transparent text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-200 transition-colors"
               onClick={() => {
-                setMessages([{ role: "user", content: `Load session: ${item}`}, { role: "ai", content: `I have restored the context for "${item}". What would you like to continue discussing?` }]);
+                setMessages([{ role: "user", content: `Load session: ${item}` }, { role: "ai", content: `I have restored the context for "${item}". What would you like to continue discussing?` }]);
                 setShowHistory(false);
               }}
             >
@@ -108,7 +118,7 @@ export default function ChatPage() {
         {/* Top Bar */}
         <header className="flex h-16 shrink-0 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
-            <button 
+            <button
               type="button"
               onClick={() => setShowHistory(true)}
               className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
@@ -116,7 +126,7 @@ export default function ChatPage() {
               <Clock className="h-4 w-4" />
               History
             </button>
-            <button 
+            <button
               type="button"
               onClick={startNewChat}
               className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
@@ -125,9 +135,9 @@ export default function ChatPage() {
               New Chat
             </button>
           </div>
-          
-          <Link 
-            href="/home" 
+
+          <Link
+            href="/home"
             className="flex h-10 w-10 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-200 hover:text-gray-900"
             title="Close chat"
           >
@@ -156,11 +166,10 @@ export default function ChatPage() {
                         <Bot className="h-5 w-5 text-white" />
                       </div>
                     )}
-                    <div className={`max-w-[85%] rounded-2xl px-5 py-3 text-base leading-relaxed shadow-sm ${
-                      msg.role === 'user' 
-                        ? 'bg-orange-500 text-white rounded-br-none' 
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                    }`}>
+                    <div className={`max-w-[85%] rounded-2xl px-5 py-3 text-base leading-relaxed shadow-sm ${msg.role === 'user'
+                      ? 'bg-orange-500 text-white rounded-br-none'
+                      : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                      }`}>
                       {msg.content}
                     </div>
                   </div>
@@ -200,7 +209,7 @@ export default function ChatPage() {
                 className="w-full max-h-[150px] min-h-[56px] resize-none rounded-3xl bg-transparent py-4 pl-6 pr-14 text-base text-gray-900 placeholder-gray-400 outline-none scrollbar-thin scrollbar-thumb-gray-200"
                 rows={1}
               />
-              <button 
+              <button
                 onClick={() => handleSubmit()}
                 disabled={!input.trim() || isTyping}
                 className="absolute bottom-2 right-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 disabled:opacity-50 disabled:hover:bg-gray-100"
@@ -211,11 +220,11 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Background Overlay for Mobile Sidebar */}
       {showHistory && (
-        <div 
-          className="fixed inset-0 z-30 bg-black/20 transition-opacity" 
+        <div
+          className="fixed inset-0 z-30 bg-black/20 transition-opacity"
           onClick={() => setShowHistory(false)}
         />
       )}
