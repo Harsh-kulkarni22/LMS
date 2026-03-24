@@ -11,7 +11,12 @@ export const env = {
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET as string,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET as string,
   CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
-  CORS_ORIGIN: process.env.CORS_ORIGIN || process.env.CLIENT_URL || "http://localhost:3000",
+  CORS_ORIGIN: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(",")
+    : [
+      "http://localhost:3000",
+      "https://lms-tau-navy.vercel.app"
+    ],
   COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || undefined,
   /** YouTube Data API v3 key for /api/explore */
   YOUTUBE_API_KEY: (process.env.YOUTUBE_API_KEY || "").trim(),
